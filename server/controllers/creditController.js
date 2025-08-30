@@ -1,4 +1,4 @@
-import Transaction from "../models/Transaction.js";
+import Transaction from "../models/Transetion.js";
 import Stripe from "stripe";
 
 const plans = [
@@ -42,7 +42,8 @@ const plans = [
   },
 ];
 
-// ✅ Get all plans
+//API controllers for getting all plans
+
 export const getPlans = async (req, res) => {
   try {
     res.json({ success: true, plans });
@@ -53,40 +54,50 @@ export const getPlans = async (req, res) => {
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// ✅ Purchase a plan
-export const purchasePlan = async (req, res) => {
+// API Controller for purchesing a plan
+
+export const purchesePlan = async (req, res) => {
   try {
     const { planId } = req.body;
     const userId = req.user._id;
+    const plan = plans.find((plan) => plan._id === planId);
 
-    const plan = plans.find((p) => p._id === planId);
     if (!plan) {
       return res.json({ success: false, message: "Invalid plan" });
     }
 
-    // Create Stripe Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: plan.price * 100, // cents
-      currency: "usd",
-      metadata: { userId, planId },
-    });
-
-    // Save transaction in DB
     const transaction = await Transaction.create({
-      userId,
+      userId: userId,
       planId: plan._id,
       amount: plan.price,
       credits: plan.credits,
       isPaid: false,
-      stripePaymentIntentId: paymentIntent.id,
     });
+    const {origin} = req.headers;
+    const session = await stripe.checkout.sessions.create({
+      success_url: "https://example.com/success",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: plan.price * 100,
+            product_data:{
+                name: plan.name
+            }
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${origin}/loading`,
+      cancel_url: `${origin}`,
+      metadata: {transaction: transaction._id.toString(), appId: 'quickgpt'},
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,  
+    }); 
 
-    res.json({
-      success: true,
-      clientSecret: paymentIntent.client_secret,
-      transaction,
-    });
+    res.json({success: true, url: session.url})
+
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.json({success: false, message: error.message})
   }
 };

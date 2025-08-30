@@ -2,27 +2,25 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "server": "nodemon server.js",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "dotevn": "^17.2.1",
+    "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
-    "openai": "^5.15.0",
-    "stripe": "^18.4.0",
+    "openai": "^5.16.0",
+    "stripe": "^18.5.0",
     "svix": "^1.75.0"
   },
   "devDependencies": {
